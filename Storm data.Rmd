@@ -1,0 +1,84 @@
+---
+title: "Storm data"
+author: "Kai Wakerman Powell"
+date: "13 March 2016"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## Synopsis
+
+This work looks at the incidence and effects of various recorded storm events from the U.S. National Oceanic and Atmospheric Administration's (NOAA) storm database. It examines the impact on human health and the economic impact of storms.
+
+Results suggest that tornados produce the most impact on human health and on the economy. The impact on human health shows that tornados impact strongly on the number of fatalities and on the injuries by quite a margin. The impact on the economy is shown by the property damage, in which tornados cause as much as the next type type of events put together.
+
+### Setting up the workspace and loading in the data
+
+This presents the setup of the workspace and packages used. It also reads the data in from the compressed file.
+```{r}
+setwd("~/Desktop/Data Science/Reproducible Research/Assignment 2/Course-Project-2")
+stormdata = read.csv(bzfile("repdata-data-StormData.csv.bz2"), header = TRUE)
+```
+
+### Data Processing
+
+Because my computer isn't great, it makes is easier to reduce the dataframe down. For this I'm reducing columns to only those that are needed in the following analysis.
+```{r}
+redstormdata <- stormdata[,c("EVTYPE", "FATALITIES", "INJURIES", "PROPDMG")]
+```
+
+### Health impacts of disaster events
+
+There are two important aspects in this dataset which inform the human health impact of disaster events. The first is fatalities, the second is injuries. They are treated seperately here as there is no clear way - with the dataset given - to evaluate the value of a life against the value of an injury.
+
+The two are compared using the same method.
+
+The fatalities chart shows that tornados produce the most injuries followed by excessive heat and flast flooding. It is important to note that some of the events are very similarly named and may be combined for further analysis. However, without a consistent rule regarding their combination, all event types have been kept seperately.
+
+```{r}
+fataldata <-aggregate(redstormdata$FATALITIES,by=list(redstormdata$EVTYPE), FUN=sum, na.rm=TRUE)
+colnames(fataldata) = c("event.type", "fatality.total")
+fatals <- fataldata[order(-fataldata$fatality.total),] 
+fatalities <- fatals[1:10,]
+fatalities$event.type <- factor(fatalities$event.type, levels=fatalities$event.type, ordered=TRUE)
+barplot(fatalities$fatality.total,names.arg = fatalities$event.type,las=2)
+```
+
+The injuries data has been treated in a similar way. However here it clearly shows that tornados produce a far greater number of injuries than its next nearest type of event.
+
+```{r}
+injdata <-aggregate(redstormdata$INJURIES,by=list(redstormdata$EVTYPE), FUN=sum, na.rm=TRUE)
+colnames(injdata) = c("event.type", "injuries.total")
+inj <- injdata[order(-injdata$injuries.total),] 
+injuries <- inj[1:10,]
+injuries$event.type <- factor(injuries$event.type, levels=injuries$event.type, ordered=TRUE)
+barplot(injuries$injuries.total,names.arg = injuries$event.type,las=2)
+```
+
+### Health impacts of disaster events
+
+The next section examines the impact of storm events on the economy. In this data set this impact is measured in the property damage variable. This is treated similarly to the previous two variables.
+
+It shows clearly that tornados, like injuries and fatalities, produces the most property damage. 
+
+```{r}
+dmgdata <-aggregate(redstormdata$PROPDMG,by=list(redstormdata$EVTYPE), FUN=sum, na.rm=TRUE)
+colnames(dmgdata) = c("event.type", "damage.total")
+dmg <- dmgdata[order(-dmgdata$damage.total),] 
+damage <- dmg[1:10,]
+damage$event.type <- factor(damage$event.type, levels=damage$event.type, ordered=TRUE)
+barplot(damage$damage.total,names.arg = damage$event.type,las=2)
+```
+
+### Results
+
+For both human health impact and economic effects, tornados produce the most damage. In the case of injuries and property damage, this is by a siginificant amount. 
+```{r}
+print(fatalities)
+print(injuries)
+print(damage)
+```
+
